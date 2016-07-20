@@ -24,6 +24,8 @@ class FileBuffer(object):
         """
         self.name = name
         self._contents = contents
+        if not isinstance(contents, str):
+            self._contents = contents.read()
         self.subdir = subdir
         self.executable = executable
 
@@ -35,10 +37,15 @@ class FileBuffer(object):
     def getContents(self):
         """return a string with the contents of the file buffer"""
         logger.debug("Reading FileBuffer: %s" % self.name)
-        if isinstance(self._contents, str):
-            return self._contents
-        else:
-            return self._contents.read()
+        return self._contents
+
+    def append(self, text):
+        self._contents += text
+        return self
+
+    def __iadd__(self, text):
+        self._contents += text
+        return self
 
     def create(self, outname=None):
         """create a file in a local filesystem as 'outname' """
@@ -47,7 +54,7 @@ class FileBuffer(object):
             filename = outname
 
         with open(filename, 'w') as thisfile:
-            thisfile.write(self.getContents())
+            thisfile.write(self._contents)
 
         if self.executable:
             from Ganga.Utility.files import chmod_executable
